@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="css/main.css">
+    <!-- link font Montserrat -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- font awesome -->
+    <link rel="stylesheet" href="fontawesome/css/all.min.css">
+</head>
+<body class="page">
+    <div class="control">
+        <button class="control__refresh">
+            <i class="fas fa-sync"></i>
+        </button>
+        <button class="control__language">
+            <span class="control__current-language">EN</span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="control__units">
+            <button class="control__celsius-units">°C</button>
+            <button class="control__fahrenheit-units">°F</button>
+        </div>
+        <form class="control__search">
+            <input type="text" class="control__input-city">
+            <button class="control__voice-input"><i class="fas fa-microphone"></i></button>
+            <button class="control__search-button">Search</button>
+        </form>
+    </div>
+    <div class="weather">
+        <div class="weather__title">
+            <h2 class="weather__current-location">Minsk, Belarus</h2>
+            <h3 class="weather__current-time">Mon 28 October 17:23</h3>
+        </div>
+        <div class="weather__today">
+            <span class="weather__degrees-today">10°</span>
+            <div class="weather__icon-today"></div>
+            <div class="weather__info">
+                <span class="weather__type">Overcast</span>
+                <span class="weather__feels-like">Feels like: 7°</span>
+                <span class="weather__wind">Wind: 2 m/s</span>
+                <span class="weather__humidity">Humidity: 83%</span>
+            </div>
+        </div>
+        <div class="weather__days">
+            <div class="weather__day-1">
+                <h3 class="weather__day-1-title">Tuesday</h3>
+                <span class="weather__day-1-degrees">7°</span>
+                <div class="weather__day-1-icon"></div>
+            </div>
+            <div class="weather__day-2">
+                <h3 class="weather__day-2-title">Wednesday</h3>
+                <span class="weather__day-2-degrees">6°</span>
+                <div class="weather__day-2-icon"></div>
+            </div>
+            <div class="weather__day-3">
+                <h3 class="weather__day-3-title">Thursday</h3>
+                <span class="weather__day-3-degrees">3°</span>
+                <div class="weather__day-3-icon"></div>
+            </div>
+        </div>
+    </div>
+    <div class="map">
+        <div class="map__map"></div>
+        <h4 class="map__latitide">Latitude: 53°54'</h4>
+        <h4 class="map_longitude">Longitude: 27°34'</h4>
+    </div>
+    <script src="js/main.js"></script>
+</body>
+</html>
