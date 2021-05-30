@@ -1,6 +1,30 @@
 .page {
+    padding: 40px 90px;
+    margin: 0;
     font-family: 'Montserrat', sans-serif;
     color: #fff;
+    box-sizing: border-box  ;
+    width: 100vw;
+    height: 100vh;
 
     background-color: blueviolet;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.weather__current-location {
+    font-size: 44px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.weather__current-time {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.map__map {
+    width: 100%;
+    height: 100px;
 }
