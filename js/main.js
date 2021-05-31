@@ -46,9 +46,12 @@ const weekday = {
 
 
 function prettifyDegrees(degrees) {
+    let neg = false;
+    if (degrees < 0) neg = true;
+    degrees = Math.abs(degrees);
     let int = Math.trunc(degrees);
     let frac = Math.round((degrees - int) * 60);
-    return int + '°' + frac + '\'';
+    return (neg ? '-' : '') + int + '°' + frac + '\'';
 }
 
 
@@ -218,7 +221,7 @@ function InitMap(latitude, longitude) {
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v11',
         center: [longitude, latitude], 
-        interactive: 1,
+        interactive: 0,
         zoom: 9
     });
     var marker = new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(map);
