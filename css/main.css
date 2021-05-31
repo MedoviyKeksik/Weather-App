@@ -254,17 +254,27 @@
     font-weight: 600;
 }
 
+.map {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+}
+
 .map__map {
-    width: 100%;
-    height: 100px;
+    width: 300px;
+    height: 300px;
+    clip-path: polygon(100% 0, 100% 100%, 90% 90%, 0 90%, 0 0);
 }
 
 .map__latitude {
+    margin: 10px 0 0 0;
     font-weight: 600;
     font-size: 20px;
 }
 
 .map__longitude {
+    margin: 10px 0 0 0;
     font-weight: 600;
     font-size: 20px;
 }
