@@ -15,6 +15,7 @@ var icons = document.querySelectorAll(".weather__icon");
 var weatherWeekdays = document.querySelectorAll(".weather__day-title");
 var searchButton = document.querySelector(".control__search-button");
 var searchInput = document.querySelector(".control__input-city");
+var voiceInputButton = document.querySelector(".control__voice-input");
 var changeBackgroundButton = document.querySelector(".control__refresh");
 var currentLanguageElement = document.querySelector(".control__current-language");
 var langEn = document.querySelector(".control__dropdown-item_en");
@@ -315,7 +316,29 @@ function changeCelsius() {
     }
 }
 
+function voiceInput() {
+    window.SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
+    voiceInputButton.style.color = "#f00";
+    var recognition = new SpeechRecognition();
+    recognition.lang = currentLanguage;
 
+    recognition.addEventListener('result', e => {
+        console.log(e);
+        voiceInputButton.style.color = "#fff";
+        const transcript = Array.from(e.results).map(result => result[0]).map(result => result.transcript);
+        console.log(transcript);
+        geocoderForward(transcript)
+        .then(json => {
+            if (typeof(json) == 'undefined') alert("City not found");
+            else updateAll(json.geometry.lat, json.geometry.lng);
+        });
+        recognition.stop();
+    });
+    recognition.start();
+}
+
+
+voiceInputButton.addEventListener('click', voiceInput);
 langRu.addEventListener('click', changeLangRu);
 langEn.addEventListener('click', changeLangEn);
 // Getting position

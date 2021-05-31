@@ -10,6 +10,7 @@
 
     background-position: center;
     background-repeat: no-repeat;
+    background-attachment: fixed;
     background-size: 100% 100%;
     display: flex;
     flex-wrap: wrap;
@@ -138,6 +139,12 @@
     display: flex;
 }
 
+@media screen and (max-width: 630px) {
+    .control__search {
+        margin-top: 10px;
+    }
+}
+
 .control__input-city {
     display: block;
     box-sizing: border-box;
@@ -150,6 +157,12 @@
     border-right: none;
     padding-left: 1em;
     color: #fff;
+}
+
+@media screen and (max-width: 400px) {
+    .control__input-city {
+        width: 100px;
+    }
 }
 
 .control__input-city:focus {
@@ -198,7 +211,7 @@
 
 .weather__today {
     position: relative;
-    width: 700px;
+    width: 720px;
 }
 
 @media screen and (max-width: 900px) {
@@ -292,7 +305,7 @@
 }
 
 .map__longitude {
-    margin: 10px 0 0 0;
+    margin: 10px 0 10px 0;
     font-weight: 600;
     font-size: 20px;
 }
