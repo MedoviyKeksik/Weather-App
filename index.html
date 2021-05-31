@@ -13,62 +13,70 @@
     <!-- mapboxmap -->
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.3.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.3.0/mapbox-gl.js"></script>
+    <!-- owfont -->
+    <link rel="stylesheet" href="owfont/css/owfont-regular.min.css">
 </head>
 <body class="page">
     <div class="control">
         <button class="control__refresh">
             <i class="fas fa-sync"></i>
         </button>
-        <button class="control__language">
-            <span class="control__current-language">EN</span>
-            <i class="fas fa-chevron-down"></i>
-        </button>
-        <div class="control__units">
-            <button class="control__celsius-units">°C</button>
-            <button class="control__fahrenheit-units">°F</button>
+        <div class="control__dropdown">
+            <button class="control__language">
+                <span class="control__current-language">EN</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="control__dropdown-content">
+                <button class="control__dropdown-item control__dropdown-item_en">EN</button>
+                <button class="control__dropdown-item control__dropdown-item_ru">RU</button>
+            </div>
         </div>
-        <form class="control__search">
-            <input type="text" class="control__input-city">
+        <div class="control__units">
+            <button class="control__fahrenheit-units">°F</button>
+            <button class="control__celsius-units">°C</button>
+        </div>
+        <div class="control__search">
+            <input type="text" class="control__input-city" placeholder="Search city or ZIP">
             <button class="control__voice-input"><i class="fas fa-microphone"></i></button>
             <button class="control__search-button">Search</button>
-        </form>
+        </div>
     </div>
     <div class="weather">
         <div class="weather__title">
             <h2 class="weather__current-location"></h2>
-            <h3 class="weather__current-time">Вс 30 Мая 02:59:31</h3>
+            <h3 class="weather__current-time"></h3>
         </div>
         <div class="weather__today">
-            <span class="weather__degrees-today">10°</span>
-            <div class="weather__icon-today"></div>
+            <span class="weather__degrees weather__degrees_today"></span>
+            <i class="owf owf-5x weather__icon weather__icon_today"></i>
             <div class="weather__info">
-                <span class="weather__type">Overcast</span>
-                <span class="weather__feels-like">Feels like: 7°</span>
-                <span class="weather__wind">Wind: 2 m/s</span>
-                <span class="weather__humidity">Humidity: 83%</span>
+                <span class="weather__type"></span>
+                <span class="weather__feels-like"></span>
+                <span class="weather__wind"></span>
+                <span class="weather__humidity"></span>
             </div>
         </div>
         <div class="weather__days">
-            <div class="weather__day-1">
-                <h3 class="weather__day-1-title">Tuesday</h3>
-                <span class="weather__day-1-degrees">7°</span>
-                <div class="weather__day-1-icon"></div>
+            <div class="weather__day">
+                <h3 class="weather__day-title"></h3>
+                <span class="weather__degrees"></span>
+                <i class="owf owf-5x weather__icon"></i>
             </div>
-            <div class="weather__day-2">
-                <h3 class="weather__day-2-title">Wednesday</h3>
-                <span class="weather__day-2-degrees">6°</span>
-                <div class="weather__day-2-icon"></div>
+            <div class="weather__day">
+                <h3 class="weather__day-title"></h3>
+                <span class="weather__degrees"></span>
+                <i class="owf owf-5x weather__icon"></i>
             </div>
-            <div class="weather__day-3">
-                <h3 class="weather__day-3-title">Thursday</h3>
-                <span class="weather__day-3-degrees">3°</span>
-                <div class="weather__day-3-icon"></div>
+            <div class="weather__day">
+                <h3 class="weather__day-title"></h3>
+                <span class="weather__degrees"></span>
+                <i class="owf owf-5x weather__icon"></i>
             </div>
         </div>
     </div>
     <div class="map">
         <div class="map__map" id="map"></div>
-        <h4 class="map__latitide"></h4>
+        <h4 class="map__latitude"></h4>
         <h4 class="map__longitude"></h4>
     </div>
     <script src="js/main.js"></script>
