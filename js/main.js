@@ -321,12 +321,12 @@ function voiceInput() {
     voiceInputButton.style.color = "#f00";
     var recognition = new SpeechRecognition();
     recognition.lang = currentLanguage;
-
+    recognition.interimResults = true;
+    recognition.continuous = false;
     recognition.addEventListener('result', e => {
-        console.log(e);
+        recognition.stop();
         voiceInputButton.style.color = "#fff";
         const transcript = Array.from(e.results).map(result => result[0]).map(result => result.transcript);
-        console.log(transcript);
         geocoderForward(transcript)
         .then(json => {
             if (typeof(json) == 'undefined') alert("City not found");
