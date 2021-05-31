@@ -15,13 +15,23 @@ var icons = document.querySelectorAll(".weather__icon");
 var weatherWeekdays = document.querySelectorAll(".weather__day-title");
 var searchButton = document.querySelector(".control__search-button");
 var searchInput = document.querySelector(".control__input-city");
-
-var currentLanguage = 'en';
 var changeBackgroundButton = document.querySelector(".control__refresh");
+var currentLanguageElement = document.querySelector(".control__current-language");
+var langEn = document.querySelector(".control__dropdown-item_en");
+var langRu = document.querySelector(".control__dropdown-item_ru");
+var celsiusButton = document.querySelector(".control__celsius-units");
+var fahrenheitButton = document.querySelector(".control__fahrenheit-units");
 var currentCity;
+var currentLatitude;
+var currentLongitude;
 var currentTime = document.querySelector(".weather__current-time");
-var deltaTimezone;
-var currentUnits = 'metric';
+var currentTimezone = 0;
+var currentUnits = localStorage.getItem('units') || 'celsius'; 
+var currentLanguage = localStorage.getItem('lang') || 'en';
+
+if (currentUnits == 'celsius') {
+    celsiusButton.classList.add('control__units_current');
+} else fahrenheitButton.classList.add('control__units_current');
 
 const weekday = {
     en: [
@@ -56,16 +66,21 @@ function prettifyDegrees(degrees) {
 
 
 function updateAll(latitude, longitude) {
-    positionLatitude.innerHTML = "Latitude: " + prettifyDegrees(latitude);
-    positionLongitude.innerHTML = "Longitude: " + prettifyDegrees(longitude);
+    currentLatitude = latitude;
+    currentLongitude = longitude;
+    searchButton.innerHTML = (currentLanguage == 'en' ? "search" : "поиск");
+    searchInput.placeholder = (currentLanguage == 'en' ? "Search city or ZIP" : "Найти по городу или ZIP")
+    positionLatitude.innerHTML = (currentLanguage == 'en' ? "Latitude: " : "Широта: ") + prettifyDegrees(latitude);
+    positionLongitude.innerHTML = (currentLanguage == 'en' ? "Longitude: " : "Долгота: ") + prettifyDegrees(longitude);
+    currentLanguageElement.innerHTML = currentLanguage;
     geocoderReverse(latitude, longitude).then(json => {
         currentCity = json.components.town || json.components.city || json.components.county;
         currentLocation.innerHTML = currentCity + ', ' + json.components.country;
     });
     InitMap(latitude, longitude);
-    getCurrentWeather(latitude, longitude, currentUnits, currentLanguage)
+    getCurrentWeather(latitude, longitude, 'metric', currentLanguage)
     .then(updateTime())
-    .then(getWeatherForecast(latitude, longitude, currentUnits, currentLanguage));
+    .then(getWeatherForecast(latitude, longitude, 'metric', currentLanguage));
 }
 
 function setPosition(position) {
@@ -75,7 +90,8 @@ function setPosition(position) {
 }
 
 function updateTime() {
-    const time = new Date();;
+    var time = new Date();
+    time = new Date(Number(time) + (time.getTimezoneOffset() * 60 + currentTimezone) * 1000);
     const format = {
         hour12: false,
         weekday: "short",
@@ -87,6 +103,13 @@ function updateTime() {
     }
     currentTime.innerHTML = time.toLocaleString(currentLanguage, format).split(',').join('');
     setTimeout(updateTime, 1000);   
+}
+
+function transformUnits(degrees, units) {
+    if (units =='fahrenheit') {
+        degrees = 9/5 * degrees + 32;
+    }
+    return degrees;
 }
 
 function addGetParams(url, params) {
@@ -181,13 +204,14 @@ async function getCurrentWeather(latitude, longitude, units, lang) {
     const data = await res.json();
     console.log(data);
     if (data.cod === 200) {
-        degrees[0].innerHTML = Math.round(data.main.temp) + '°';
+        degrees[0].innerHTML = Math.round(transformUnits(data.main.temp, currentUnits)) + '°';
         icons[0].classList.add(`owf-${data.weather[0].id}`);
         currentDescription.innerHTML = data.weather[0].description;
-        currentFeelsLike.innerHTML = 'feels like: ' + Math.round(data.main.feels_like) + '°';
-        currentWind.innerHTML = 'wind: ' + Math.round(data.wind.speed) + ' m/s';
-        currentHumidity.innerHTML = 'humidity: ' + data.main.humidity + '%';
-        deltaTimezone = new Date(data.dt * 1000) - new Date();
+        currentFeelsLike.innerHTML = (currentLanguage == 'en' ? 'feels like: ' : 'ощущается как: ') + Math.round(data.main.feels_like) + '°';
+        currentWind.innerHTML = (currentLanguage == 'en' ? 'wind: ' : 'ветер: ') + Math.round(data.wind.speed) + ' m/s';
+        currentHumidity.innerHTML = (currentLanguage == 'en' ? 'humidity: ' : 'влажность: ') + data.main.humidity + '%';
+        currentTimezone = data.timezone;
+        console.log(data.timezone);
     }
 }
 
@@ -205,7 +229,7 @@ async function getWeatherForecast(latitude, longitude, units, lang) {
     const filteredData = data.list.filter((reading) => reading.dt_txt.includes("18:00:00") && reading.dt * 1000 - new Date() >= 64800000);
     if (data.cod === "200") {
         for (let i = 1; i < 4; i++) {
-            degrees[i].innerHTML = Math.round(filteredData[i - 1].main.temp) + '°';
+            degrees[i].innerHTML = Math.round(transformUnits(filteredData[i - 1].main.temp, currentUnits)) + '°';
             icons[i].classList.add(`owf-${filteredData[i - 1].weather[0].id}`);
             let day = new Date(filteredData[i - 1].dt * 1000);
             weatherWeekdays[i - 1].innerHTML = weekday[currentLanguage][day.getDay()];
@@ -222,7 +246,8 @@ function InitMap(latitude, longitude) {
         style: 'mapbox://styles/mapbox/streets-v11',
         center: [longitude, latitude], 
         interactive: 0,
-        zoom: 9
+        zoom: 9,
+        locale: currentLanguage
     });
     var marker = new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(map);
 }
@@ -250,9 +275,54 @@ function changeCity(e) {
     }
 }
 
+function changeLangRu() {
+    if (currentLanguageElement.innerHTML == "en") {
+        currentLanguage = 'ru';
+        localStorage.setItem('lang', currentLanguage);
+        updateAll(currentLatitude, currentLongitude);
+    }
+}
+
+function changeLangEn() {
+    if (currentLanguageElement.innerHTML == "ru") {
+        currentLanguage = 'en';
+        localStorage.setItem('lang', currentLanguage);
+        updateAll(currentLatitude, currentLongitude);
+    }
+}
+
+function changeFahrenheit() {
+    console.log(currentUnits);
+    if (currentUnits != 'fahrenheit') {
+        currentUnits = 'fahrenheit';
+        localStorage.setItem('units', currentUnits);
+        celsiusButton.classList.remove('control__units_current');
+        fahrenheitButton.classList.add('control__units_current');
+        getCurrentWeather(currentLatitude, currentLongitude, 'metric', currentLanguage)
+        .then(getWeatherForecast(currentLatitude, currentLongitude, 'metric', currentLanguage));
+    }
+}
+
+function changeCelsius() {
+    console.log(currentUnits);
+    if (currentUnits != 'celsius') {
+        currentUnits = 'celsius';
+        localStorage.setItem('units', currentUnits);
+        celsiusButton.classList.add('control__units_current');
+        fahrenheitButton.classList.remove('control__units_current');
+        getCurrentWeather(currentLatitude, currentLongitude, 'metric', currentLanguage)
+        .then(getWeatherForecast(currentLatitude, currentLongitude, 'metric', currentLanguage));
+    }
+}
+
+
+langRu.addEventListener('click', changeLangRu);
+langEn.addEventListener('click', changeLangEn);
 // Getting position
 navigator.geolocation.getCurrentPosition(setPosition);
 document.addEventListener('DOMContentLoaded', changeBackground());
 changeBackgroundButton.addEventListener('click', changeBackground);
 searchButton.addEventListener('click', changeCity);
 searchInput.addEventListener('keypress', changeCity);
+celsiusButton.addEventListener('click', changeCelsius);
+fahrenheitButton.addEventListener('click', changeFahrenheit);
