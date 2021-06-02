@@ -236,26 +236,24 @@ function changeMap(latitude, longitude) {
     var marker = new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(map);
 }
 
-function changeCity(e) {
+function changeCity(city) {
+    geocoderClient.forwardRequest(city, info.lang)
+    .then(json => {
+        if (typeof(json) == 'undefined') alert("City not found");
+        else getAllInfo(json.results[0].geometry.lat, json.results[0].geometry.lng, info.lang, info.units).then(info => changePageContent(info, localization));
+    });
+}
+
+function onCityInput(e) {
     if (e.type === 'keypress') {
         if (e.which == KEY.ENTER || e.keyCode == KEY.ENTER) {
             if (searchInput.value == '') return alert("Empty query");
-            currentCity = searchInput.value;
-            geocoderClient.forwardRequest(currentCity, info.lang)
-            .then(json => {
-                if (typeof(json) == 'undefined') alert("City not found");
-                else getAllInfo(json.results[0].geometry.lat, json.results[0].geometry.lng, info.lang, info.units).then(info => changePageContent(info, localization));
-            });
+            changeCity(searchInput.value);
         }
     }
     if (e.type === 'click') {
         if (searchInput.value == '') return alert("Empty query");
-        currentCity = searchInput.value;
-        geocoderClient.forwardRequest(currentCity, info.lang)
-        .then(json => {
-            if (typeof(json) == 'undefined') alert("City not found");
-            else getAllInfo(json.geometry.lat, json.geometry.lng, info.lang, info.units).then(info => changePageContent(info, localization));
-        });
+        changeCity(searchInput.value);
     }
 }
 
@@ -276,18 +274,18 @@ function voiceInput() {
     window.SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
     voiceInputButton.style.color = "#f00";
     var recognition = new SpeechRecognition();
-    recognition.lang = currentLanguage;
+    recognition.lang = info.lang;
     recognition.interimResults = true;
     recognition.continuous = false;
     recognition.addEventListener('result', e => {
         recognition.stop();
         voiceInputButton.style.color = "#fff";
-        const transcript = Array.from(e.results).map(result => result[0]).map(result => result.transcript);
-        geocoderForward(transcript)
-        .then(json => {
-            if (typeof(json) == 'undefined') alert("City not found");
-            else updateAll(json.geometry.lat, json.geometry.lng);
-        });
+        try {
+            const transcript = Array.from(e.results).map(result => result[0]).map(result => result.transcript);
+            changeCity(transcript);
+        } catch(e) {
+            console.log(e);
+        }
         recognition.stop();
     });
     recognition.start();
@@ -444,7 +442,7 @@ voiceInputButton.addEventListener('click', voiceInput);
 changeBackgroundButton.addEventListener('click', changeBackgroundOnClick);
 for (let i = 0; i < langButtons.length; i++)
     langButtons[i].addEventListener('click', changeLang);
-searchButton.addEventListener('click', changeCity);
-searchInput.addEventListener('keypress', changeCity);
+searchButton.addEventListener('click', onCityInput);
+searchInput.addEventListener('keypress', onCityInput);
 celsiusButton.addEventListener('click', changeUnits);
 fahrenheitButton.addEventListener('click', changeUnits);
