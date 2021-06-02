@@ -17,6 +17,10 @@ var langButtons             = document.querySelectorAll(".control__dropdown-item
 var celsiusButton           = document.querySelector(".control__celsius-units");
 var fahrenheitButton        = document.querySelector(".control__fahrenheit-units");
 var currentTime             = document.querySelector(".weather__current-time");
+var modal                   = document.querySelector(".modal");
+var modalHeader             = document.querySelector(".modal__header");
+var modalText               = document.querySelector(".modal__text");
+var modalButton             = document.querySelector(".modal__button");
 
 const TRIESTHREESHOLD = 100;
 const CREDENTIALSURN = "js/credentials.json";
@@ -28,6 +32,12 @@ const KEY = {
 
 var info;
 var localization;
+
+function showModal(header, text) {
+    modalHeader.innerHTML = header;
+    modalText.innerHTML = text;
+    modal.setAttribute('show', '');
+}
 
 function prettifyDegrees(degrees) {
     let isNegative = false;
@@ -103,6 +113,7 @@ class GeocoderClient {
 
     static async request(uri) {
         const response = await fetch(uri);
+        if (!response.ok) throw new Error("Geocoder service error");
         const data = await response.json();
         return data;
     }
@@ -133,6 +144,7 @@ class FlickrClient {
 
     static async request(uri) {
         const response = await fetch(uri);
+        if (!response.ok) throw new Error("Flickr service error");
         const data = await response.json();
         return data;
     }
@@ -173,6 +185,7 @@ class OpenweathermapClient {
 
     static async request(uri) {
         const response = await fetch(uri);
+        if (!response.ok) throw new Error("Openweathermap error");
         const data = await response.json();
         return data;
     }
@@ -181,10 +194,14 @@ class OpenweathermapClient {
 
 function loadImage(url) {
     return new Promise(function(resolve, reject) {
-        const img = new Image();
-        img.src = url;
-        img.onload = () => {
-            resolve(img);
+        try {
+            const img = new Image();
+            img.src = url;
+            img.onload = () => {
+                resolve(img);
+            }
+        } catch(e) {
+            reject(e);
         }
     });
 }
@@ -209,9 +226,13 @@ async function getImage(imageList) {
         tries++;
     }
     if (typeof(imageUrl) != 'undefined') {
-        return await loadImage(imageUrl);
+        try {
+            return await loadImage(imageUrl);
+        } catch(e) {
+            showModal("Error!", "Error while loading image.");
+        }
     }
-    return null;
+    throw new Error("Error while getting images.");
 }
 
 function changeBackground(img) {
@@ -223,6 +244,7 @@ function changeBackgroundOnClick(e) {
     getImage(info.images).then(img => changeBackground(img)).then(() => setTimeout(() => {
         e.target.disabled = false;
     }, 500))
+    .catch((err) => showModal("Error!", err.message));
 }
 
 function changeMap(latitude, longitude) {
@@ -239,20 +261,20 @@ function changeMap(latitude, longitude) {
 function changeCity(city) {
     geocoderClient.forwardRequest(city, info.lang)
     .then(json => {
-        if (typeof(json) == 'undefined') alert("City not found");
+        if (typeof(json.results[0]) == 'undefined') showModal("Error!", "City not found");
         else getAllInfo(json.results[0].geometry.lat, json.results[0].geometry.lng, info.lang, info.units).then(info => changePageContent(info, localization));
-    });
+    }).catch(() => showModal("Error!", "Connection interrupted"));
 }
 
 function onCityInput(e) {
     if (e.type === 'keypress') {
         if (e.which == KEY.ENTER || e.keyCode == KEY.ENTER) {
-            if (searchInput.value == '') return alert("Empty query");
+            if (searchInput.value == '') return showModal("Error!", "Empty query");
             changeCity(searchInput.value);
         }
     }
     if (e.type === 'click') {
-        if (searchInput.value == '') return alert("Empty query");
+        if (searchInput.value == '') return showModal("Error!", "Empty query");
         changeCity(searchInput.value);
     }
 }
@@ -271,7 +293,7 @@ function changeUnits(e) {
 }
 
 function voiceInput() {
-    window.SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
+    window.SpeechRecognition = window.speechRecognition || windofw.webkitSpeechRecognition;
     voiceInputButton.style.color = "#f00";
     var recognition = new SpeechRecognition();
     recognition.lang = info.lang;
@@ -374,33 +396,49 @@ async function getAllInfo(latitude, longitude, lang, units) {
     let weatherForecastRequest = weatherClient.getForecast(latitude, longitude, lang);
     let imageRequest = imageClient.SearchPhotos("night,city");
 
-    let geoInfo = await geoRequest;
-    info.city = geoInfo.results[0].components.town || geoInfo.results[0].components.city || geoInfo.results[0].country;
-    info.country = geoInfo.results[0].components.country;
+    try {
+        let geoInfo = await geoRequest;
+        info.city = geoInfo.results[0].components.town || geoInfo.results[0].components.city || geoInfo.results[0].country;
+        info.country = geoInfo.results[0].components.country;
+    } catch(e) {
+        showModal("Error!", e.message);
+    }
 
-    let weatherInfo = await currentWeatherRequest;
-    info.currentWeather = {};
-    info.currentWeather.temp = weatherInfo.main.temp;
-    info.currentWeather.icon = weatherInfo.weather[0].id;
-    info.currentWeather.description = weatherInfo.weather[0].description;
-    info.currentWeather.feelsLike = weatherInfo.main.feels_like;
-    info.currentWeather.humidity = weatherInfo.main.humidity;
-    info.currentWeather.wind = weatherInfo.wind.speed;
-    info.timezone = weatherInfo.timezone;
+    try {
+        let weatherInfo = await currentWeatherRequest;
+        info.currentWeather = {};
+        info.currentWeather.temp = weatherInfo.main.temp;
+        info.currentWeather.icon = weatherInfo.weather[0].id;
+        info.currentWeather.description = weatherInfo.weather[0].description;
+        info.currentWeather.feelsLike = weatherInfo.main.feels_like;
+        info.currentWeather.humidity = weatherInfo.main.humidity;
+        info.currentWeather.wind = weatherInfo.wind.speed;
+        info.timezone = weatherInfo.timezone;
+    } catch(e) {
+        showModal("Error!", e.message);
+    }
 
-    let forecastInfo = await weatherForecastRequest;
-    let filteredData = forecastInfo.list.filter((reading) => reading.dt_txt.includes("18:00:00") && reading.dt * 1000 - new Date() >= 64800000);
-    info.forecast = [];
-    for (let i = 0; i < FORECASTDAYS; i++) {
-        let tmp = {};
-        tmp.temp = filteredData[i].main.temp;
-        tmp.icon = filteredData[i].weather[0].id;
-        tmp.weekday = new Date(filteredData[i].dt * 1000).getDay();
-        info.forecast.push(tmp);
-    }    
+    try {
+        let forecastInfo = await weatherForecastRequest;
+        let filteredData = forecastInfo.list.filter((reading) => reading.dt_txt.includes("18:00:00") && reading.dt * 1000 - new Date() >= 64800000);
+        info.forecast = [];
+        for (let i = 0; i < FORECASTDAYS; i++) {
+            let tmp = {};
+            tmp.temp = filteredData[i].main.temp;
+            tmp.icon = filteredData[i].weather[0].id;
+            tmp.weekday = new Date(filteredData[i].dt * 1000).getDay();
+            info.forecast.push(tmp);
+        }    
+    } catch(e) {
+        showModal("Error!", e.message);
+    }
     
-    let imageInfo = await imageRequest;
-    info.images = imageInfo.photos.photo;
+    try {
+        let imageInfo = await imageRequest;
+        info.images = imageInfo.photos.photo;
+    } catch (e) {
+        showModal("Error!", e.message);
+    }
     return info;
 }
 
@@ -436,6 +474,10 @@ function changePageContent(info, localization) {
     }
 }
 
+function closeModal() {
+    modal.removeAttribute('show');
+}
+
 document.addEventListener('DOMContentLoaded', start);
 voiceInputButton.addEventListener('click', voiceInput);
 
@@ -446,3 +488,4 @@ searchButton.addEventListener('click', onCityInput);
 searchInput.addEventListener('keypress', onCityInput);
 celsiusButton.addEventListener('click', changeUnits);
 fahrenheitButton.addEventListener('click', changeUnits);
+modalButton.addEventListener('click', closeModal);
