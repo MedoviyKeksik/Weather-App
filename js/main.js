@@ -40,9 +40,8 @@ function showModal(header, text) {
 }
 
 function prettifyDegrees(degrees) {
-    let isNegative = false;
-    if (degrees < 0) isNegative = true;
-    degrees = Math.abs(degrees);
+    let isNegative = degrees < 0;
+    degrees = Math.abs(degrees);        
     let int = Math.trunc(degrees);
     let frac = Math.round((degrees - int) * 60);
     return (isNegative ? '-' : '') + int + '°' + frac + '\'';
@@ -81,116 +80,6 @@ function addGetParams(url, params) {
     }
     return url;
 }
-
-class GeocoderClient {
-    url;
-    key;
-
-    constructor(url, key) {
-        this.url = url;
-        this.key = key;
-    }
-
-    async forwardRequest(city, lang = 'en') {
-        const params = {
-            q: city,
-            key: this.key,
-            language: lang
-        };
-        const uri = addGetParams(this.url, params);
-        return await GeocoderClient.request(uri);
-    }
-
-    async reverseRequest(latitude, longitude, lang = 'en') {
-        const params = {
-            q: latitude + '+' + longitude,
-            key: this.key,
-            language: lang
-        };
-        const uri = addGetParams(this.url, params);
-        return await GeocoderClient.request(uri);
-    }
-
-    static async request(uri) {
-        const response = await fetch(uri);
-        if (!response.ok) throw new Error("Geocoder service error");
-        const data = await response.json();
-        return data;
-    }
-}
-
-class FlickrClient {
-    url;
-    key;
-    constructor(url, key) {
-        this.url = url;
-        this.key = key;
-    }
-
-    async SearchPhotos(tags) {
-        const params = {
-            method: "flickr.photos.search",
-            format: "json",
-            api_key: this.key,
-            sort:  'interestingness-desc',
-            tags: tags,
-            tag_mode: 'all',
-            extras: 'url_h,url_k,url_o',
-            nojsoncallback: 1
-        }
-        const uri = addGetParams(this.url, params);
-        return await FlickrClient.request(uri)
-    }
-
-    static async request(uri) {
-        const response = await fetch(uri);
-        if (!response.ok) throw new Error("Flickr service error");
-        const data = await response.json();
-        return data;
-    }
-}
-
-class OpenweathermapClient {
-    url;
-    key;
-
-    constructor(url, key) {
-        this.url = url;
-        this.key = key;
-    }
-
-    async getWeather(latitude, longitude, lang) {
-        const params = {
-            lat: latitude,
-            lon: longitude,
-            appid: this.key,
-            units: "metric",
-            lang: lang,
-        }
-        const uri = addGetParams(this.url + "weather?", params);
-        return await OpenweathermapClient.request(uri);
-    }
-
-    async getForecast(latitude, longitude, lang) {
-        const params = {
-            lat: latitude,
-            lon: longitude,
-            appid: this.key,
-            units: "metric",
-            lang: lang,
-        }
-        const uri = addGetParams(this.url + "forecast?", params);
-        return await OpenweathermapClient.request(uri);
-    }
-
-    static async request(uri) {
-        const response = await fetch(uri);
-        if (!response.ok) throw new Error("Openweathermap error");
-        const data = await response.json();
-        return data;
-    }
-}
-
 
 function loadImage(url) {
     return new Promise(function(resolve, reject) {
@@ -232,7 +121,7 @@ async function getImage(imageList) {
             showModal("Error!", "Error while loading image.");
         }
     }
-    throw new Error("Error while getting images.");
+    this.reject("Error while getting images.");
 }
 
 function changeBackground(img) {
@@ -241,7 +130,9 @@ function changeBackground(img) {
 
 function changeBackgroundOnClick(e) {
     e.target.disabled = true;
-    getImage(info.images).then(img => changeBackground(img)).then(() => setTimeout(() => {
+    getImage(info.images)
+    .then(img => changeBackground(img))
+    .then(() => setTimeout(() => {
         e.target.disabled = false;
     }, 500))
     .catch((err) => showModal("Error!", err.message));
@@ -347,11 +238,16 @@ function getLocalizationConfig() {
 }
 
 async function getConfig() {
-    let credentialsRequest = getCredentials();
-    let localizationRequest = getLocalizationConfig();
-    let credentialsJson =  JSON.parse(await credentialsRequest);
-    localization = JSON.parse(await localizationRequest);
-    return {credentials: credentialsJson, localization};
+    try {
+        const credentialsRequest = getCredentials();
+        const localizationRequest = getLocalizationConfig();
+        const credentialsJson =  JSON.parse(await credentialsRequest);
+        localization = JSON.parse(await localizationRequest);
+        return {credentials: credentialsJson, localization};
+    } catch (error) {
+        console.log(error);
+        showModal("Error!", "Can't load configuration files");
+    }
 }
 
 var weatherClient;
@@ -366,22 +262,26 @@ function initClients(credentials) {
 }
 
 async function start() {
-    const config = await getConfig();
-    let latitude;
-    let longitude
-    navigator.geolocation.getCurrentPosition((position) => {        
-        latitude = position.coords.latitude;
-        longitude = position.coords.longitude;
-        initClients(config.credentials);
-        let units = localStorage.getItem('units') || 'celsius'; 
-        let lang = localStorage.getItem('lang') || 'en';
-        getAllInfo(latitude, longitude, lang, units)
-        .then(info => {
-            getImage(info.images)
-            .then((img) => changeBackground(img))
-            .then(changePageContent(info, config.localization));
+    try {
+        const config = await getConfig();
+        let latitude;
+        let longitude
+        navigator.geolocation.getCurrentPosition((position) => {        
+            latitude = position.coords.latitude;
+            longitude = position.coords.longitude;
+            initClients(config.credentials);
+            let units = localStorage.getItem('units') || 'celsius'; 
+            let lang = localStorage.getItem('lang') || 'en';
+            getAllInfo(latitude, longitude, lang, units)
+            .then(info => {
+                getImage(info.images)
+                .then((img) => changeBackground(img))
+                .then(changePageContent(info, config.localization));
+            });
         });
-    });
+    } catch(e) {
+        showModal("Critical error!", "Failed to start");
+    }
 }
 
 async function getAllInfo(latitude, longitude, lang, units) {
@@ -436,7 +336,7 @@ async function getAllInfo(latitude, longitude, lang, units) {
     try {
         let imageInfo = await imageRequest;
         info.images = imageInfo.photos.photo;
-    } catch (e) {
+    } catch(e) {
         showModal("Error!", e.message);
     }
     return info;
@@ -445,32 +345,36 @@ async function getAllInfo(latitude, longitude, lang, units) {
 var timerId;
 
 function changePageContent(info, localization) {
-    if (typeof(timerId) != 'undefined') clearInterval(timerId);
-    timerId = setInterval(changeTime, 1000, info.lang, info.timezone);
-    changeMap(info.latitude, info.longitude);
-    positionLatitude.innerHTML = localization[info.lang].latitude + ': ' + prettifyDegrees(info.latitude);
-    positionLongitude.innerHTML = localization[info.lang].longitude + ': ' + prettifyDegrees(info.longitude);
-    currentDescription.innerHTML = info.currentWeather.description;
-    currentFeelsLike.innerHTML = localization[info.lang].feelsLike + ': ' + transformUnits(Math.round(info.currentWeather.feelsLike)) + '°';
-    currentHumidity.innerHTML = localization[info.lang].humidity + ': ' + info.currentWeather.humidity + '%';
-    currentWind.innerHTML = localization[info.lang].wind + ': ' + Math.round(info.currentWeather.wind) + ' ' + localization[info.lang].windSpeed;
-    currentLocation.innerHTML = info.city + ', ' + info.country;
-    degrees[0].innerHTML = Math.round(transformUnits(info.currentWeather.temp, info.units)) + '°';
-    icons[0].classList.add(`owf-${info.currentWeather.icon}`);
-    for (let i = 0; i < FORECASTDAYS; i++) {
-        weatherWeekdays[i].innerHTML = localization[info.lang].weekdays[info.forecast[i].weekday];
-        icons[i + 1].classList.add(`owf-${info.forecast[i].icon}`); 
-        degrees[i + 1].innerHTML = Math.round(transformUnits(info.forecast[i].temp, info.units)) + '°';
-    }
-    searchButton.innerHTML = localization[info.lang].search;
-    searchInput.placeholder = localization[info.lang].searchPlaceholder;
-    currentLanguageElement.innerHTML = info.lang;
-    if (info.units == 'celsius') {
-        celsiusButton.setAttribute('current', '');
-        fahrenheitButton.removeAttribute('current');
-    } else {
-        fahrenheitButton.setAttribute('current', '');
-        celsiusButton.removeAttribute('current');
+    try {
+        if (typeof(timerId) != 'undefined') clearInterval(timerId);
+        timerId = setInterval(changeTime, 1000, info.lang, info.timezone);
+        changeMap(info.latitude, info.longitude);
+        positionLatitude.innerHTML = localization[info.lang].latitude + ': ' + prettifyDegrees(info.latitude);
+        positionLongitude.innerHTML = localization[info.lang].longitude + ': ' + prettifyDegrees(info.longitude);
+        currentDescription.innerHTML = info.currentWeather.description;
+        currentFeelsLike.innerHTML = localization[info.lang].feelsLike + ': ' + transformUnits(Math.round(info.currentWeather.feelsLike)) + '°';
+        currentHumidity.innerHTML = localization[info.lang].humidity + ': ' + info.currentWeather.humidity + '%';
+        currentWind.innerHTML = localization[info.lang].wind + ': ' + Math.round(info.currentWeather.wind) + ' ' + localization[info.lang].windSpeed;
+        currentLocation.innerHTML = info.city + ', ' + info.country;
+        degrees[0].innerHTML = Math.round(transformUnits(info.currentWeather.temp, info.units)) + '°';
+        icons[0].classList.add(`owf-${info.currentWeather.icon}`);
+        for (let i = 0; i < FORECASTDAYS; i++) {
+            weatherWeekdays[i].innerHTML = localization[info.lang].weekdays[info.forecast[i].weekday];
+            icons[i + 1].classList.add(`owf-${info.forecast[i].icon}`); 
+            degrees[i + 1].innerHTML = Math.round(transformUnits(info.forecast[i].temp, info.units)) + '°';
+        }
+        searchButton.innerHTML = localization[info.lang].search;
+        searchInput.placeholder = localization[info.lang].searchPlaceholder;
+        currentLanguageElement.innerHTML = info.lang;
+        if (info.units == 'celsius') {
+            celsiusButton.setAttribute('current', '');
+            fahrenheitButton.removeAttribute('current');
+        } else {
+            fahrenheitButton.setAttribute('current', '');
+            celsiusButton.removeAttribute('current');
+        }
+    } catch {
+        getAllInfo(info.latitude, info.longitude, info.lang, info.units).then(info => changePageContent(info, info.localization));
     }
 }
 
