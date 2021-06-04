@@ -98,21 +98,25 @@ function loadImage(url) {
 async function getImage(imageList) {
     let tries = 0;
     let imageUrl;
-    while (tries < TRIESTHREESHOLD) {
-        let i = Math.trunc(Math.random() * imageList.length - 1);
-        if (imageList[i].url_h != 'undefined') {
-            imageUrl = imageList[i].url_h;
-            break;
+    try {
+        while (tries < TRIESTHREESHOLD) {
+            let i = Math.trunc(Math.random() * imageList.length - 1);
+            if (imageList[i].url_h != 'undefined') {
+                imageUrl = imageList[i].url_h;
+                break;
+            }
+            if (imageList[i].url_k != 'undefined') {
+                imageUrl = imageList[i].url_k;
+                break
+            }
+            if (imageList[i].url_o != 'undefined') {
+                imageUrl = imageList[i].url_o;
+                break;
+            }
+            tries++;
         }
-        if (imageList[i].url_k != 'undefined') {
-            imageUrl = imageList[i].url_k;
-            break
-        }
-        if (imageList[i].url_o != 'undefined') {
-            imageUrl = imageList[i].url_o;
-            break;
-        }
-        tries++;
+    } catch {
+        throw new Error("Error while getting images");
     }
     if (typeof(imageUrl) != 'undefined') {
         try {

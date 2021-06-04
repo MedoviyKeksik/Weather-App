@@ -33,7 +33,7 @@ class OpenweathermapClient {
 
     static async get(uri) {
         const response = await fetch(uri);
-        if (!response.ok) throw new Error("Openweathermap error");
+        if (!response.ok) throw new Error("Failed to get weather");
         const data = await response.json();
         return data;
     }
