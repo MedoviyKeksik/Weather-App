@@ -184,7 +184,7 @@ function changeUnits(e) {
 }
 
 function voiceInput() {
-    window.SpeechRecognition = window.speechRecognition || windofw.webkitSpeechRecognition;
+    window.SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
     voiceInputButton.style.color = "#f00";
     var recognition = new SpeechRecognition();
     recognition.lang = info.lang;
