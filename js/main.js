@@ -197,7 +197,7 @@ function voiceInput() {
             const transcript = Array.from(e.results).map(result => result[0]).map(result => result.transcript);
             changeCity(transcript);
         } catch(e) {
-            console.log(e);
+            showModal("Error!", "City not found");
         }
         recognition.stop();
     });
