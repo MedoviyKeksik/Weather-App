@@ -1,4 +1,4 @@
-{
+const localization = {
     "en": {
         "weekdays": [
             "Sunday",

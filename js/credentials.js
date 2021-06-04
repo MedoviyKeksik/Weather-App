@@ -1,4 +1,4 @@
-{
+const credentials = {
     "geocoder": {
         "url": "https://api.opencagedata.com/geocode/v1/json?",
         "key": "652de9696d8946f8b8c4b4a444737399"

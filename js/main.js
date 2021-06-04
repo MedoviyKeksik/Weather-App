@@ -23,15 +23,12 @@ var modalText               = document.querySelector(".modal__text");
 var modalButton             = document.querySelector(".modal__button");
 
 const TRIESTHREESHOLD = 100;
-const CREDENTIALSURN = "js/credentials.json";
-const LOCALIZATIONURN = "js/localization.json";
 const FORECASTDAYS = 3;
 const KEY = {
-    ENTER: 13
+    ENTER: 13   
 }
 
 var info;
-var localization;
 
 function showModal(header, text) {
     modalHeader.innerHTML = header;
@@ -209,50 +206,9 @@ function voiceInput() {
     recognition.start();
 }
 
-function makeAjaxRequest(method, url) {
-    return new Promise(function(resolve, reject) {
-        let xhr = new XMLHttpRequest();
-        xhr.open(method, url);
-        xhr.onload = function() {
-            if (this.status >= 200 && this.status < 300) {
-                resolve(xhr.response);
-            } else {
-                reject({
-                    status: this.status,
-                    statusText: this.statusText
-                });
-            }
-        }
-        xhr.onerror = function() {
-            reject({
-                status: this.status,
-                statusText: this.statusText
-            })
-        }
-        xhr.send();
-    });
-}
+function getConfig() {
+    return {credentials, localization};
 
-
-function getCredentials() {
-    return makeAjaxRequest('GET', CREDENTIALSURN);
-}
-
-function getLocalizationConfig() {
-    return makeAjaxRequest('GET', LOCALIZATIONURN);
-}
-
-async function getConfig() {
-    try {
-        const credentialsRequest = getCredentials();
-        const localizationRequest = getLocalizationConfig();
-        const credentialsJson =  JSON.parse(await credentialsRequest);
-        localization = JSON.parse(await localizationRequest);
-        return {credentials: credentialsJson, localization};
-    } catch (error) {
-        console.log(error);
-        showModal("Error!", "Can't load configuration files");
-    }
 }
 
 var weatherClient;
@@ -268,7 +224,8 @@ function initClients(credentials) {
 
 async function start() {
     try {
-        const config = await getConfig();
+        const config = getConfig();
+        if (typeof config == "undefined") throw new Error("Config Loading error");
         let latitude;
         let longitude
         navigator.geolocation.getCurrentPosition((position) => {        
