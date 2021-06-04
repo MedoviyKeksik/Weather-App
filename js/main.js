@@ -121,7 +121,7 @@ async function getImage(imageList) {
             showModal("Error!", "Error while loading image.");
         }
     }
-    this.reject("Error while getting images.");
+    throw new Error("Error while getting images.");
 }
 
 function changeBackground(img) {
