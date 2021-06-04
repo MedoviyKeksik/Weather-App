@@ -131,11 +131,12 @@ function changeBackground(img) {
 function changeBackgroundOnClick(e) {
     e.target.disabled = true;
     getImage(info.images)
-    .then(img => changeBackground(img))
-    .then(() => setTimeout(() => {
-        e.target.disabled = false;
-    }, 500))
-    .catch((err) => showModal("Error!", err.message));
+    .then(img => {
+        changeBackground(img);
+        setTimeout(() => {
+            e.target.disabled = false;
+        }, 500);
+    }).catch((err) => showModal("Error!", err.message));
 }
 
 function changeMap(latitude, longitude) {
@@ -276,7 +277,8 @@ async function start() {
             .then(info => {
                 getImage(info.images)
                 .then((img) => changeBackground(img))
-                .then(changePageContent(info, config.localization));
+                .then(changePageContent(info, config.localization))
+                .catch((err) => showModal("Error!", err.message));
             });
         });
     } catch(e) {
