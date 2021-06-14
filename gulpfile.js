@@ -34,6 +34,10 @@ gulp.task('browserSync', function(done) {
 
 gulp.task('watch', function() {
 	gulp.watch('app/scss/**/*.scss', gulp.series(['sass']));
+	gulp.watch('app/js/**/*.js', function(done) {
+		browserSync.reload();
+		done();
+	});
 });
 
 
@@ -84,8 +88,14 @@ gulp.task('fonts', function() {
 });
 
 
-gulp.task('clean:dist', function() {
-	return del.sync('dist')
+gulp.task('clean:dist', function(done) {
+	del.sync('dist');
+	done();
+});
+
+gulp.task('clean:tests', function(done) {
+	del.sync('tests/js');
+	done();
 });
 
 
