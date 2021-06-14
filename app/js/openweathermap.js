@@ -1,10 +1,11 @@
-class OpenweathermapClient {
+import {addGetParams} from './common.js';
+export class OpenweathermapClient {
     constructor(url, key) {
         this.url = url;
         this.key = key;
     }
 
-    async getWeather(latitude, longitude, lang) {
+    getWeather(latitude, longitude, lang) {
         const params = {
             lat: latitude,
             lon: longitude,
@@ -13,10 +14,16 @@ class OpenweathermapClient {
             lang: lang,
         }
         const uri = addGetParams(this.url + "weather?", params);
-        return await OpenweathermapClient.get(uri);
+        return new Promise(function(resolve, reject) {
+            OpenweathermapClient.get(uri).then(data => {
+                resolve(data)
+            }, e => {
+                reject(e)
+            });
+        });
     }
 
-    async getForecast(latitude, longitude, lang) {
+    getForecast(latitude, longitude, lang) {
         const params = {
             lat: latitude,
             lon: longitude,
@@ -25,13 +32,25 @@ class OpenweathermapClient {
             lang: lang,
         }
         const uri = addGetParams(this.url + "forecast?", params);
-        return await OpenweathermapClient.get(uri);
+        return new Promise(function(resolve, reject) {
+            OpenweathermapClient.get(uri).then(data => {
+                resolve(data);
+            }, e => {
+                reject(e);
+            });
+        });
     }
 
-    static async get(uri) {
-        const response = await fetch(uri);
-        if (!response.ok) throw new Error("Failed to get weather");
-        const data = await response.json();
-        return data;
+    static get(uri) {
+        return new Promise(function(resolve, reject) {
+            fetch(uri).then(response => {
+                if (!response.ok) reject(new Error("Geocoder service error"));
+                response.json().then(data => {
+                    resolve(data);
+                }, e => {
+                    reject(e);
+                });
+            });
+        });
     }
 }

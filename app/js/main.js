@@ -1,3 +1,10 @@
+import {credentials} from './credentials.js';
+import {localization} from './localization.js';
+import {OpenweathermapClient} from './openweathermap.js';
+import {FlickrClient} from './flickr.js';
+import {GeocoderClient} from './geocoder.js';
+import {mapboxClient, changeMap} from './mapbox.js';
+
 var positionLatitude        = document.querySelector(".map__latitude");
 var positionLongitude       = document.querySelector(".map__longitude");
 var currentLocation         = document.querySelector(".weather__current-location");
@@ -21,13 +28,6 @@ var modal                   = document.querySelector(".modal");
 var modalHeader             = document.querySelector(".modal__header");
 var modalText               = document.querySelector(".modal__text");
 var modalButton             = document.querySelector(".modal__button");
-
-// import {localization} from 'localization.js';
-// import {credentials} from 'credentials.js';
-// import {GeocoderClient} from 'geocoder.js';
-// import {OpenweathermapClient} from 'openweathermap.js';
-// import {FlickrClient} from 'flickr.js';
-// import {mapboxgl} from 'https://api.mapbox.com/mapbox-gl-js/v2.3.0/mapbox-gl.js';
 
 const TRIESTHREESHOLD = 100;
 const FORECASTDAYS = 3;
@@ -87,37 +87,38 @@ function loadImage(url) {
     });
 }
 
-async function getImage(imageList) {
-    let tries = 0;
-    let imageUrl;
-    try {
-        while (tries < TRIESTHREESHOLD) {
-            let i = Math.trunc(Math.random() * imageList.length - 1);
-            if (imageList[i].url_h != 'undefined') {
-                imageUrl = imageList[i].url_h;
-                break;
-            }
-            if (imageList[i].url_k != 'undefined') {
-                imageUrl = imageList[i].url_k;
-                break
-            }
-            if (imageList[i].url_o != 'undefined') {
-                imageUrl = imageList[i].url_o;
-                break;
-            }
-            tries++;
-        }
-    } catch(e) {
-        throw new Error("Error while getting images");
-    }
-    if (typeof(imageUrl) != 'undefined') {
+function getImage(imageList) {
+    return new Promise(function(resolve, reject) {
+        let tries = 0;
+        let imageUrl;
         try {
-            return await loadImage(imageUrl);
+            while (tries < TRIESTHREESHOLD) {
+                let i = Math.trunc(Math.random() * imageList.length - 1);
+                if (imageList[i].url_h != 'undefined') {
+                    imageUrl = imageList[i].url_h;
+                    break;
+                }
+                if (imageList[i].url_k != 'undefined') {
+                    imageUrl = imageList[i].url_k;
+                    break
+                }
+                if (imageList[i].url_o != 'undefined') {
+                    imageUrl = imageList[i].url_o;
+                    break;
+                }
+                tries++;
+            }
         } catch(e) {
-            showModal("Error!", "Error while loading image.");
+            reject(new Error("Error while getting images"));
         }
-    }
-    throw new Error("Error while getting images.");
+        if (typeof(imageUrl) != 'undefined') {
+            loadImage(imageUrl).then(data => {
+                resolve(data);
+            }).catch(e => {
+                reject(e);
+            });
+        }
+    });
 }
 
 function changeBackground(img) {
@@ -135,22 +136,13 @@ function changeBackgroundOnClick(e) {
     }).catch((err) => showModal("Error!", err.message));
 }
 
-function changeMap(latitude, longitude) {
-    var map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: [longitude, latitude], 
-        interactive: 0,
-        zoom: 9
-    });
-    new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(map);
-}
-
 function changeCity(city) {
     geocoderClient.forwardRequest(city, info.lang)
     .then(json => {
         if (typeof(json.results[0]) == 'undefined') showModal("Error!", "City not found");
-        else getAllInfo(json.results[0].geometry.lat, json.results[0].geometry.lng, info.lang, info.units).then(info => changePageContent(info, localization));
+        else getAllInfo(json.results[0].geometry.lat, json.results[0].geometry.lng, info.lang, info.units)
+        .then(info => changePageContent(info, localization))
+        .catch(e => showModal("Error!", e.message));
     }).catch(() => showModal("Error!", "Connection interrupted"));
 }
 
@@ -171,7 +163,8 @@ function changeLang(e) {
     info.lang = e.target.getAttribute('lang');
     localStorage.setItem('lang', info.lang);
     getAllInfo(info.latitude, info.longitude, info.lang, info.units)
-    .then((info) => changePageContent(info, localization));
+    .then((info) => changePageContent(info, localization))
+    .catch(e => showModal("Error!", e.message));
 }
 
 function changeUnits(e) {
@@ -214,10 +207,10 @@ function initClients(credentials) {
     weatherClient = new OpenweathermapClient(credentials.openweathermap.url, credentials.openweathermap.key);
     geocoderClient = new GeocoderClient(credentials.geocoder.url, credentials.geocoder.key);
     imageClient = new FlickrClient(credentials.flickr.url, credentials.flickr.key);
-    mapboxgl.accessToken = credentials.mapbox.key;
+    mapboxClient.accessToken = credentials.mapbox.key;
 }
 
-async function start() {
+function start() {
     try {
         const config = getConfig();
         if (typeof config == "undefined") throw new Error("Config Loading error");
@@ -235,14 +228,15 @@ async function start() {
                 .then((img) => changeBackground(img))
                 .then(changePageContent(info, config.localization))
                 .catch((err) => showModal("Error!", err.message));
-            });
+            })
+            .catch(e => showModal("Error!", e.message));
         });
     } catch(e) {
         showModal("Critical error!", "Failed to start");
     }
 }
 
-async function getAllInfo(latitude, longitude, lang, units) {
+function getAllInfo(latitude, longitude, lang, units) {
     info = {};
     info.latitude = latitude;
     info.longitude = longitude;
@@ -254,50 +248,42 @@ async function getAllInfo(latitude, longitude, lang, units) {
     let weatherForecastRequest = weatherClient.getForecast(latitude, longitude, lang);
     let imageRequest = imageClient.SearchPhotos("night,city");
 
-    try {
-        let geoInfo = await geoRequest;
-        info.city = geoInfo.results[0].components.town || geoInfo.results[0].components.city || geoInfo.results[0].country;
-        info.country = geoInfo.results[0].components.country;
-    } catch(e) {
-        showModal("Error!", e.message);
-    }
+    return new Promise(function(resolve, reject) {
+        Promise.all([geoRequest, currentWeatherRequest, weatherForecastRequest, imageRequest]).then(values => {
+            const geoInfo = values[0];
+            const weatherInfo = values[1];
+            const forecastInfo = values[2];
+            const imageInfo = values[3];
 
-    try {
-        let weatherInfo = await currentWeatherRequest;
-        info.currentWeather = {};
-        info.currentWeather.temp = weatherInfo.main.temp;
-        info.currentWeather.icon = weatherInfo.weather[0].id;
-        info.currentWeather.description = weatherInfo.weather[0].description;
-        info.currentWeather.feelsLike = weatherInfo.main.feels_like;
-        info.currentWeather.humidity = weatherInfo.main.humidity;
-        info.currentWeather.wind = weatherInfo.wind.speed;
-        info.timezone = weatherInfo.timezone;
-    } catch(e) {
-        showModal("Error!", e.message);
-    }
+            info.city = geoInfo.results[0].components.town || geoInfo.results[0].components.city || geoInfo.results[0].country;
+            info.country = geoInfo.results[0].components.country;
 
-    try {
-        let forecastInfo = await weatherForecastRequest;
-        let filteredData = forecastInfo.list.filter((reading) => reading.dt_txt.includes("18:00:00") && reading.dt * 1000 - new Date() >= 64800000);
-        info.forecast = [];
-        for (let i = 0; i < FORECASTDAYS; i++) {
-            let tmp = {};
-            tmp.temp = filteredData[i].main.temp;
-            tmp.icon = filteredData[i].weather[0].id;
-            tmp.weekday = new Date(filteredData[i].dt * 1000).getDay();
-            info.forecast.push(tmp);
-        }    
-    } catch(e) {
-        showModal("Error!", e.message);
-    }
-    
-    try {
-        let imageInfo = await imageRequest;
-        info.images = imageInfo.photos.photo;
-    } catch(e) {
-        showModal("Error!", e.message);
-    }
-    return info;
+            info.currentWeather = {};
+            info.currentWeather.temp = weatherInfo.main.temp;
+            info.currentWeather.icon = weatherInfo.weather[0].id;
+            info.currentWeather.description = weatherInfo.weather[0].description;
+            info.currentWeather.feelsLike = weatherInfo.main.feels_like;
+            info.currentWeather.humidity = weatherInfo.main.humidity;
+            info.currentWeather.wind = weatherInfo.wind.speed;
+            info.timezone = weatherInfo.timezone;
+
+            let filteredData = forecastInfo.list.filter((reading) => reading.dt_txt.includes("18:00:00") && reading.dt * 1000 - new Date() >= 64800000);
+            info.forecast = [];
+            for (let i = 0; i < FORECASTDAYS; i++) {
+                let tmp = {};
+                tmp.temp = filteredData[i].main.temp;
+                tmp.icon = filteredData[i].weather[0].id;
+                tmp.weekday = new Date(filteredData[i].dt * 1000).getDay();
+                info.forecast.push(tmp);
+            }
+
+            info.images = imageInfo.photos.photo;
+
+            resolve(info);
+        }, e => {
+            reject(e.message);
+        })
+    });
 }
 
 var timerId;
@@ -332,7 +318,9 @@ function changePageContent(info, localization) {
             celsiusButton.removeAttribute('current');
         }
     } catch(e) {
-        getAllInfo(info.latitude, info.longitude, info.lang, info.units).then(info => changePageContent(info, info.localization));
+        getAllInfo(info.latitude, info.longitude, info.lang, info.units)
+        .then(info => changePageContent(info, info.localization))
+        .catch(e => showModal("Error!", e.message));
     }   
 }
 

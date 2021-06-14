@@ -1,4 +1,4 @@
-const localization = {
+export const localization = {
     "en": {
         "weekdays": [
             "Sunday",

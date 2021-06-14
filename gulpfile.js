@@ -10,7 +10,9 @@ const cache = require('gulp-cache');
 const del = require('del');
 const babel = require('gulp-babel');
 const eslint = require('gulp-eslint');
+const stripImportExport = require('gulp-strip-import-export')
 const mocha = require('gulp-mocha');
+
 
 gulp.task('sass', function() {
 	return gulp.src('app/scss/style.scss')
@@ -21,6 +23,7 @@ gulp.task('sass', function() {
 		}))
 });
 
+
 gulp.task('browserSync', function(done) {
 	browserSync.init({
 		server: {
@@ -30,9 +33,11 @@ gulp.task('browserSync', function(done) {
 	done();
 });
 
+
 gulp.task('watch', function() {
 	gulp.watch('app/scss/**/*.scss', gulp.series(['sass']));
 });
+
 
 gulp.task('eslint', function() {
 	return gulp.src('app/js/**/*.js')
@@ -41,19 +46,22 @@ gulp.task('eslint', function() {
 		.pipe(eslint.failAfterError())
 });
 
-gulp.task('tests', function() {
-	return gulp.src('tests/**/*.js')
-		.pipe(mocha())
+
+gulp.task('tests', function(done) {
+	return gulp.src('tests/**/*.js', {read: false})
+		.pipe(mocha());
 });
 
 gulp.task('useref', function() {
 	return gulp.src('app/*.html')
 		.pipe(useref())
+		.pipe(gulpIf('*.js', stripImportExport()))
 		.pipe(gulpIf('*.js', babel()))
 		.pipe(gulpIf('*.js', uglify()))
 		.pipe(gulpIf('*.css', cssnano()))
 		.pipe(gulp.dest('dist'))
 });
+
 
 gulp.task('images', function() {
 	return gulp.src('app/images/**/*.+(png|jpg|gif|svg)')
@@ -63,10 +71,12 @@ gulp.task('images', function() {
 		.pipe(gulp.dest('dist/images'))
 });
 
+
 gulp.task('fonts', function() {
 	return gulp.src('app/fonts/**/*')
 		.pipe(gulp.dest('dist/fonts'))
 });
+
 
 gulp.task('clean:dist', function() {
 	return del.sync('dist')
@@ -76,6 +86,7 @@ gulp.task('clean:dist', function() {
 gulp.task('clean:cache', function(callback) {
 	return cache.clearAll(callback);
 });
+
 
 gulp.task('default', gulp.series('sass', 'browserSync', 'watch', function(done) {
 	done();

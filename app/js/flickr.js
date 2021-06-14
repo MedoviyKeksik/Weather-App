@@ -1,10 +1,11 @@
-class FlickrClient {
+import {addGetParams} from './common.js';
+export class FlickrClient {
     constructor(url, key) {
         this.url = url;
         this.key = key;
     }
 
-    async SearchPhotos(tags) {
+    SearchPhotos(tags) {
         const params = {
             method: "flickr.photos.search",
             format: "json",
@@ -16,13 +17,25 @@ class FlickrClient {
             nojsoncallback: 1
         }
         const uri = addGetParams(this.url, params);
-        return await FlickrClient.get(uri)
+        return new Promise(function(resolve, reject) {
+            FlickrClient.get(uri).then(data => {
+                resolve(data);
+            }, e => {
+                reject(e);
+            });
+        }); 
     }
 
-    static async get(uri) {
-        const response = await fetch(uri);
-        if (!response.ok) throw new Error("Flickr service error");
-        const data = await response.json();
-        return data;
+    static get(uri) {
+        return new Promise(function(resolve, reject) {
+            fetch(uri).then(response => {
+                if (!response.ok) reject(new Error("Geocoder service error"));
+                response.json().then(data => {
+                    resolve(data);
+                }, e => {
+                    reject(e);
+                });
+            });
+        });
     }
 }

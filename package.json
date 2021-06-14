@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "commonjs",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MedoviyKeksik/Weather-App.git"
@@ -38,6 +39,7 @@
     "gulp-imagemin": "^7.1.0",
     "gulp-mocha": "^8.0.0",
     "gulp-sass": "^4.1.0",
+    "gulp-strip-import-export": "^1.0.0",
     "gulp-uglify": "^3.0.2",
     "gulp-useref": "^5.0.0",
     "mocha": "^9.0.0",

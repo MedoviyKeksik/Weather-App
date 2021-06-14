@@ -1,4 +1,4 @@
-function addGetParams(url, params) {
+export function addGetParams(url, params) {
     let tmp = [];
     for (var param in params) {
         tmp.push(param + '=' + params[param]);
