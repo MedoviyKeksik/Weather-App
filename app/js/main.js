@@ -22,6 +22,13 @@ var modalHeader             = document.querySelector(".modal__header");
 var modalText               = document.querySelector(".modal__text");
 var modalButton             = document.querySelector(".modal__button");
 
+// import {localization} from 'localization.js';
+// import {credentials} from 'credentials.js';
+// import {GeocoderClient} from 'geocoder.js';
+// import {OpenweathermapClient} from 'openweathermap.js';
+// import {FlickrClient} from 'flickr.js';
+// import {mapboxgl} from 'https://api.mapbox.com/mapbox-gl-js/v2.3.0/mapbox-gl.js';
+
 const TRIESTHREESHOLD = 100;
 const FORECASTDAYS = 3;
 const KEY = {
@@ -66,18 +73,6 @@ function transformUnits(degrees, units) {
     return degrees;
 }
 
-function addGetParams(url, params) {
-    let tmp = [];
-    for (param in params) {
-        tmp.push(param + '=' + params[param]);
-    }
-    for (let i = 0; i < tmp.length; i++) {
-        if (i) url += '&';
-        url += tmp[i];
-    }
-    return url;
-}
-
 function loadImage(url) {
     return new Promise(function(resolve, reject) {
         try {
@@ -112,7 +107,7 @@ async function getImage(imageList) {
             }
             tries++;
         }
-    } catch {
+    } catch(e) {
         throw new Error("Error while getting images");
     }
     if (typeof(imageUrl) != 'undefined') {
@@ -148,7 +143,7 @@ function changeMap(latitude, longitude) {
         interactive: 0,
         zoom: 9
     });
-    var marker = new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(map);
+    new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(map);
 }
 
 function changeCity(city) {
@@ -188,7 +183,7 @@ function changeUnits(e) {
 function voiceInput() {
     window.SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
     voiceInputButton.style.color = "#f00";
-    var recognition = new SpeechRecognition();
+    var recognition = new window.SpeechRecognition();
     recognition.lang = info.lang;
     recognition.interimResults = true;
     recognition.continuous = false;
@@ -336,9 +331,9 @@ function changePageContent(info, localization) {
             fahrenheitButton.setAttribute('current', '');
             celsiusButton.removeAttribute('current');
         }
-    } catch {
+    } catch(e) {
         getAllInfo(info.latitude, info.longitude, info.lang, info.units).then(info => changePageContent(info, info.localization));
-    }
+    }   
 }
 
 function closeModal() {

@@ -1,6 +1,4 @@
 class FlickrClient {
-    url;
-    key;
     constructor(url, key) {
         this.url = url;
         this.key = key;
