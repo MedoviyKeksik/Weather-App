@@ -10,9 +10,7 @@ const cache = require('gulp-cache');
 const del = require('del');
 const babel = require('gulp-babel');
 const eslint = require('gulp-eslint');
-const stripImportExport = require('gulp-strip-import-export')
-const mocha = require('gulp-mocha');
-
+const stripImportExport = require('gulp-strip-import-export');
 
 gulp.task('sass', function() {
 	return gulp.src('app/scss/style.scss')
@@ -47,10 +45,18 @@ gulp.task('eslint', function() {
 });
 
 
-gulp.task('tests', function(done) {
-	return gulp.src('tests/**/*.js', {read: false})
-		.pipe(mocha());
-});
+gulp.task('test', function(done) {
+	gulp.src('app/js/**/*.js')
+		.pipe(stripImportExport())
+		.pipe(gulp.dest('tests/js'));
+	browserSync.init({
+		server: {
+			baseDir: './',
+			index: 'tests/index.html'
+		}
+	})
+	done();
+})
 
 gulp.task('useref', function() {
 	return gulp.src('app/*.html')

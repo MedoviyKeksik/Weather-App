@@ -1,11 +1,3 @@
-import {credentials} from './credentials.js';
-import {localization} from './localization.js';
-import {OpenweathermapClient} from './openweathermap.js';
-import {FlickrClient} from './flickr.js';
-import {GeocoderClient} from './geocoder.js';
-import {mapboxClient, changeMap} from './mapbox.js';
-import {prettifyDegrees} from './common.js';
-
 var positionLatitude        = document.querySelector(".map__latitude");
 var positionLongitude       = document.querySelector(".map__longitude");
 var currentLocation         = document.querySelector(".weather__current-location");

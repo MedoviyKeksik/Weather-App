@@ -1,4 +1,4 @@
-export function addGetParams(url, params) {
+function addGetParams(url, params) {
     let tmp = [];
     for (var param in params) {
         tmp.push(param + '=' + params[param]);
@@ -10,7 +10,7 @@ export function addGetParams(url, params) {
     return url;
 }
 
-export function prettifyDegrees(degrees) {
+function prettifyDegrees(degrees) {
     let isNegative = degrees < 0;
     degrees = Math.abs(degrees);        
     let int = Math.trunc(degrees);
