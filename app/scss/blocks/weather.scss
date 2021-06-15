@@ -1,7 +1,6 @@
 .weather {
     &__current-location {
-        font-size: 44px;
-        font-weight: 700;
+        @include setFont(44px, 700);
 
         margin-top: 57px;
         margin-bottom: 0;
@@ -10,8 +9,7 @@
     }
 
     &__current-time {
-        font-size: 24px;
-        font-weight: 600;
+        @include setFont(24px, 600);
 
         margin-top: 4px;
         margin-bottom: 0;
@@ -53,9 +51,7 @@
     }
 
     &__info {
-        font-size: 22px;
-        font-weight: 700;
-        line-height: 37px;
+        @include setFont(22px, 700, 37px);
 
         position: absolute;
         top: 160px;
@@ -80,8 +76,7 @@
     }
 
     &__day-title {
-        font-size: 22px;
-        font-weight: 700;
+        @include setFont(22px, 700);
 
         margin-bottom: 0;
 
@@ -89,8 +84,7 @@
     }
 
     &__degrees {
-        font-size: 80px;
-        font-weight: 600;
+        @include setFont(80px, 600);
 
         margin-top: 4px;
     }

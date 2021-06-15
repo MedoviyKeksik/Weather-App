@@ -43,8 +43,8 @@
     color: #fff;
     border: none;
     border-radius: 5px;
-    font-weight: bold;
     font-size: 14px;
+    font-weight: bold;
     background-color: #3333ff;
     margin: 0 0 0 auto; }
     .modal__button:hover {
@@ -154,7 +154,7 @@
     border-left: none;
     background-color: #4c5255; }
   .control__search-button {
-    font-size: 14px;
+    font-size: 14ox;
     font-weight: 700;
     display: block;
     width: 101px;

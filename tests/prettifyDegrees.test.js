@@ -1,3 +1,5 @@
+import {prettifyDegrees} from 'common.js';
+
 describe('Function prettifyDegrees', function() {
     describe('Integer degrees', function() {
         it('0° == prettifyDegrees(0)', function() {

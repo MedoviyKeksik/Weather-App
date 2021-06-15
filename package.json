@@ -4,7 +4,8 @@
   "description": "Beautiful clock with weather forecast",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "gulp test",
+    "build": "gulp build"
   },
   "type": "commonjs",
   "repository": {

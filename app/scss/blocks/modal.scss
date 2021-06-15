@@ -24,11 +24,10 @@
         display: block;
         width: 25%;
         height: 30px;
-        color: $textcolor;
+        color: $text-color;
         border: none;
         border-radius: 5px;
-        font-weight: bold;
-        font-size: 14px;
+        @include setFont(14px, bold);
         background-color: #3333ff;
         margin: 0 0 0 auto;
 
