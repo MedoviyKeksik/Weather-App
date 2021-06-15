@@ -4,17 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather App</title>
-    <link rel="stylesheet" href="css/main.css">
+    <!-- build:css css/style.min.css -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- endbuild -->
     <!-- link font Montserrat -->
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- font awesome -->
-    <link rel="stylesheet" href="fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="fonts/fontawesome/css/all.min.css">
     <!-- mapboxmap -->
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.3.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.3.0/mapbox-gl.js"></script>
     <!-- owfont -->
-    <link rel="stylesheet" href="owfont/css/owfont-regular.min.css">
+    <link rel="stylesheet" href="fonts/owfont/css/owfont-regular.min.css">
 </head>
 <body class="page">
     <div class="modal">
@@ -22,7 +24,6 @@
         <p class="modal__text"></p>
         <button class="modal__button">Close</button>
     </div>
-
     <div class="control">
         <button class="control__refresh">
             <i class="fas fa-sync"></i>
@@ -41,8 +42,8 @@
             </div>
         </div>
         <div class="control__units">
-            <button class="control__fahrenheit-units control_units-item" units="fahrenheit">°F</button>
-            <button class="control__celsius-units control_units-item" units="celsius">°C</button>
+            <button class="control__fahrenheit-units control__units-item" units="fahrenheit">°F</button>
+            <button class="control__celsius-units control__units-item" units="celsius">°C</button>
         </div>
         <div class="control__search">
             <input type="text" class="control__input-city" placeholder="Search city or ZIP">
@@ -88,11 +89,15 @@
         <h4 class="map__latitude"></h4>
         <h4 class="map__longitude"></h4>
     </div>
-    <script src="js/credentials.js"></script>
-    <script src="js/localization.js"></script>
-    <script src="js/flickr.js"></script>
-    <script src="js/geocoder.js"></script>
-    <script src="js/openweathermap.js"></script>
-    <script src="js/main.js"></script>
+    <!-- build:js js/main.min.js -->
+    <script type="module" src="js/common.js"></script>
+    <script type="module" src="js/mapbox.js"></script>
+    <script type="module" src="js/credentials.js"></script>
+    <script type="module" src="js/localization.js"></script>
+    <script type="module" src="js/flickr.js"></script>
+    <script type="module" src="js/geocoder.js"></script>
+    <script type="module" src="js/openweathermap.js"></script>
+    <script type="module" src="js/main.js"></script>
+    <!-- endbuild -->
 </body>
 </html>
