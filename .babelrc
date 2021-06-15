@@ -1,4 +1,3 @@
 {
-    "plugins": ["@babel/transform-runtime"],
-    "targets": "> 0.25%, not dead"    
+    "presets": ["@babel/preset-env"]
 }   

@@ -11,6 +11,7 @@ const del = require('del');
 const babel = require('gulp-babel');
 const eslint = require('gulp-eslint');
 const stripImportExport = require('gulp-strip-import-export');
+const mocha = require('gulp-mocha');
 
 gulp.task('sass', function() {
 	return gulp.src('app/scss/style.scss')
@@ -49,17 +50,11 @@ gulp.task('eslint', function() {
 });
 
 
-gulp.task('test', function(done) {
-	gulp.src('app/js/**/*.js')
-		.pipe(stripImportExport())
-		.pipe(gulp.dest('tests/js'));
-	browserSync.init({
-		server: {
-			baseDir: './',
-			index: 'tests/index.html'
-		}
-	})
-	done();
+gulp.task('test', function() {
+	return gulp.src('test/**/*.js', {read: false})
+		.pipe(mocha({
+			require: '@babel/register'
+		}));
 })
 
 gulp.task('useref', function() {
@@ -109,6 +104,6 @@ gulp.task('default', gulp.series('sass', 'browserSync', 'watch', function(done) 
 }));
 
 
-gulp.task('build', gulp.series('sass', 'useref', 'images', 'fonts', function(done) {
+gulp.task('build', gulp.series('sass', 'eslint', 'test', 'useref', 'images', 'fonts', function(done) {
 	done();
 }));

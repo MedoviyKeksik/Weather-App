@@ -1,4 +1,5 @@
-import {prettifyDegrees} from 'common.js';
+import { assert } from '../node_modules/chai';
+import {prettifyDegrees} from '../app/js/common.js';
 
 describe('Function prettifyDegrees', function() {
     describe('Integer degrees', function() {

@@ -1,4 +1,5 @@
-
+import {assert} from '../node_modules/chai';
+import {addGetParams} from '../app/js/common.js'
 
 describe('Function addGetParams', function() {
     describe("Add many string params", function() {
